@@ -1,12 +1,12 @@
 local AES = dofile(minetest.get_modpath(minetest.get_current_modname()).."AES.lua")
 
-local vers = "100" -- 1.00
+local vers = "101" -- 1.01
+--[[
+Changelog:
+1.01: Remove timebased nonce as it was to buggy
+]]
 
---[[The Key is the key as number +
-    os.time() +
-    version
-    The second before will be check as well to prevent losing messages
-    SO: Time differenz should be maximum 1 sec
+--[[The Key is the key as number + version
 
     Message is just the Message
     Output will be base64 encoded]]
@@ -18,11 +18,11 @@ which will then try execute a command
 very unlikely
 ]]
 
-local function make_key(str, nonce)
+function make_key(str)
   if not str then
     return
   end
-  local outstr = tostring(nonce)
+  local outstr = tostring(vers)
   local l = 1
   while true do
     local data = string.byte(str, l)
@@ -73,8 +73,6 @@ local function is_utf8(str)
 end
 
 function encrypt(key, msg)
-  local time = os.time()
-  key = make_key(key, time + vers)
   msg = AES.ECB_256(AES.encrypt, key, msg)
   msg = minetest.encode_base64(msg)
   return msg
@@ -88,17 +86,9 @@ function decrypt(key, msg)
   if not msg then
     return false, "No Base64"
   end
-  local time = os.time()
-  key = make_key(key, time + vers)
   msg = AES.ECB_256(AES.decrypt, key, msg)
   if msg and is_utf8(msg) and msg ~= "" then
     return true, msg
-  else --  Try the second before...
-    key = key -1
-    msg = AES.ECB_256(AES.decrypt, key, msg)
-    if msg and is_utf8(msg) and msg ~= "" then
-      return true, msg
-    else return false, "Old Message, Wrong Key or incompatible Mod"
-    end
+  else return false, "Old Mod, Wrong Key or incompatible Mod"
   end
 end

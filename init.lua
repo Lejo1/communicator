@@ -92,7 +92,7 @@ minetest.register_chatcommand("join_channel", {
   func = function(params)
     local d = string.split(params, " ")
     local c, pw = d[1], d[2]
-    channels[c] = {m=minetest.mod_channel_join(c), pw=pw}
+    channels[c] = {m=minetest.mod_channel_join(c), pw=make_key(pw)}
   end
 })
 
@@ -127,7 +127,7 @@ minetest.register_chatcommand("p", {
   end
 })
 
-channels[write] = {m=minetest.mod_channel_join(write), pw="coolmodsneedcoolpasswords"}
+channels[write] = {m=minetest.mod_channel_join(write), pw=make_key("coolmodsneedcoolpasswords")}
 
 minetest.after(3, function()
   if not channels[write] or not channels[write].m or not channels[write].m:is_writeable() then
